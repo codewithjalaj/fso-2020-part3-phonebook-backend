@@ -1,7 +1,13 @@
 const express = require('express');
+const morgan = require('morgan');
 const app = express();
 
+morgan.token('data', (req) => {
+	return JSON.stringify(req.body);
+});
+
 app.use(express.json());
+app.use(morgan(':method :url :status :response-time ms - :res[content-length] - :data'));
 
 let entries = [
 	{
@@ -53,11 +59,16 @@ app.post('/api/persons', (req, res) => {
 		return res.status(400).json({ error: `Name and Number both must be present.` });
 	}
 
+	let isUnique = true;
 	entries.forEach((entry) => {
 		if (entry.name.toLowerCase() === body.name.toLowerCase()) {
-			return res.status(400).json({ error: `Name must be unique.` });
+			isUnique = false;
 		}
 	});
+
+	if (!isUnique) {
+		return res.status(400).json({ error: `Name must be unique.` });
+	}
 
 	const newEntry = [
 		{
