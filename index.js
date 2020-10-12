@@ -3,7 +3,7 @@ const app = express();
 
 app.use(express.json());
 
-const entries = [
+let entries = [
 	{
 		name: 'Arto Hellas',
 		number: '12-45-43434',
@@ -38,6 +38,38 @@ app.get('/api/persons/:id', (req, res) => {
 	const id = req.params.id;
 	let person = entries.filter((entry) => entry.id === Number(id));
 	res.json(person);
+});
+
+app.delete('/api/persons/:id', (req, res) => {
+	const id = req.params.id;
+	entries = entries.filter((entry) => entry.id !== Number(id));
+	res.status(204).json(entries);
+});
+
+app.post('/api/persons', (req, res) => {
+	const body = req.body;
+
+	if (!body.name || !body.number) {
+		return res.status(400).json({ error: `Name and Number both must be present.` });
+	}
+
+	entries.forEach((entry) => {
+		if (entry.name.toLowerCase() === body.name.toLowerCase()) {
+			return res.status(400).json({ error: `Name must be unique.` });
+		}
+	});
+
+	const newEntry = [
+		{
+			name: body.name,
+			number: body.number,
+			id: Math.floor(Math.random() * 1000),
+		},
+	];
+	console.log('newEntry', newEntry);
+	entries = entries.concat(newEntry);
+
+	res.json(entries);
 });
 
 const PORT = 3001;
