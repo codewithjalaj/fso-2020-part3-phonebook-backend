@@ -26,8 +26,18 @@ const entries = [
 	},
 ];
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (_req, res) => {
 	res.json(entries);
+});
+
+app.get('/info', (_req, res) => {
+	res.send(`Phonebook has info for ${entries.length} people. \n\n ${new Date()}`);
+});
+
+app.get('/api/persons/:id', (req, res) => {
+	const id = req.params.id;
+	let person = entries.filter((entry) => entry.id === Number(id));
+	res.json(person);
 });
 
 const PORT = 3001;
