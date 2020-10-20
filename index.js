@@ -13,7 +13,7 @@ app.use(morgan(':method :url :status :response-time ms - :res[content-length] - 
 
 let entries = [
 	{
-		name: 'Arto Hellas',
+		name: 'Artolla Hellas',
 		number: '12-45-43434',
 		id: 1,
 	},
