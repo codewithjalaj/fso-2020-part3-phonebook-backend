@@ -82,7 +82,7 @@ app.post('/api/persons', (req, res) => {
 	console.log('newEntry', newEntry);
 	entries = entries.concat(newEntry);
 
-	res.json(entries);
+	res.json(newEntry);
 });
 
 const PORT = process.env.PORT || 3001;
