@@ -1,3 +1,5 @@
+require('dotenv').config();
+const Person = require('./models/phonebook');
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -35,8 +37,14 @@ let entries = [
 	},
 ];
 
-app.get('/api/persons', (_req, res) => {
-	res.json(entries);
+app.get('/api/persons', async (_req, res) => {
+	const result = await Person.find({});
+
+	if (!result) {
+		throw new Error(`Unable to fetch data from DB.`);
+	}
+
+	return res.status(200).json(result);
 });
 
 app.get('/info', (_req, res) => {
@@ -80,7 +88,7 @@ app.post('/api/persons', (req, res) => {
 			id: Math.floor(Math.random() * 1000),
 		},
 	];
-	console.log('newEntry', newEntry);
+	// console.log('newEntry', newEntry);
 	entries = entries.concat(newEntry);
 
 	res.json(newEntry);
