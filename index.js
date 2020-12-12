@@ -15,14 +15,16 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan(':method :url :status :response-time ms - :res[content-length] - :data'));
 
-app.get('/api/persons', async (_req, res) => {
-	const result = await Person.find({});
-
-	if (!result) {
-		throw new Error(`Unable to fetch data from DB.`);
+app.get('/api/persons', async (req, res, next) => {
+	try {
+		const result = await Person.find({});
+		if (!result) {
+			throw new Error(`Unable to fetch data from DB.`);
+		}
+		return res.status(200).json(result);
+	} catch (error) {
+		return next(error);
 	}
-
-	return res.status(200).json(result);
 });
 
 app.get('/info', async (req, res, next) => {
@@ -58,34 +60,24 @@ app.delete('/api/persons/:id', async (req, res, next) => {
 	}
 });
 
-app.post('/api/persons', async (req, res) => {
-	const body = req.body;
+app.post('/api/persons', async (req, res, next) => {
+	try {
+		const body = req.body;
 
-	if (!body.name || !body.number) {
-		return res.status(400).json({ error: `Name and Number both must be present.` });
+		if (!body.name || !body.number) {
+			return res.status(400).json({ error: `Name and Number both must be present.` });
+		}
+
+		const newPerson = new Person({
+			name: body.name,
+			number: body.number,
+		});
+
+		const savedPerson = await newPerson.save();
+		res.json(savedPerson);
+	} catch (error) {
+		return next(error);
 	}
-
-	// let isUnique = true;
-	// entries.forEach((entry) => {
-	// 	if (entry.name.toLowerCase() === body.name.toLowerCase()) {
-	// 		isUnique = false;
-	// 	}
-	// });
-
-	// if (!isUnique) {
-	// 	return res.status(400).json({ error: `Name must be unique.` });
-	// }
-
-	const newPerson = new Person({
-		name: body.name,
-		number: body.number,
-	});
-
-	const savedPerson = await newPerson.save();
-
-	// entries = entries.concat(newEntry);
-
-	res.json(savedPerson);
 });
 
 app.put('/api/persons/:id', async (req, res, next) => {
@@ -94,7 +86,10 @@ app.put('/api/persons/:id', async (req, res, next) => {
 			...req.body,
 		};
 
-		const result = await Person.findByIdAndUpdate(req.params.id, updatedPerson, { new: true });
+		const result = await Person.findByIdAndUpdate(req.params.id, updatedPerson, {
+			new: true,
+			runValidators: true,
+		});
 
 		return res.json(result);
 	} catch (error) {
@@ -114,6 +109,8 @@ const errorHandler = (error, request, response, next) => {
 
 	if (error.name === 'CastError') {
 		return response.status(400).send({ error: 'malformatted id' });
+	} else if (error.name === 'ValidationError') {
+		return response.status(400).json({ error: error.message });
 	}
 
 	next(error);
