@@ -8,7 +8,7 @@ mongoose
 		useFindAndModify: false,
 		useCreateIndex: true,
 	})
-	.then((result) => {
+	.then(() => {
 		console.log('Connected to DB');
 	})
 	.catch((error) => {

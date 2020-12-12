@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const Person = require('./models/person');
 const express = require('express');
 const morgan = require('morgan');
