@@ -51,47 +51,69 @@ app.get('/info', (_req, res) => {
 	res.send(`Phonebook has info for ${entries.length} people. \n\n ${new Date()}`);
 });
 
-app.get('/api/persons/:id', (req, res) => {
-	const id = req.params.id;
-	let person = entries.filter((entry) => entry.id === Number(id));
-	res.json(person);
+app.get('/api/persons/:id', async (req, res) => {
+	// const id = req.params.id;
+	// let person = entries.filter((entry) => entry.id === Number(id));
+	// res.json(person);
+	try {
+		const result = await Person.findById(req.params.id);
+		if (!result) {
+			return res.status(404).json({ error: 'Not Found' });
+		}
+
+		res.json(result);
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({ error: 'Invalid ID' });
+	}
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-	const id = req.params.id;
-	entries = entries.filter((entry) => entry.id !== Number(id));
-	res.status(204).json(entries);
+app.delete('/api/persons/:id', async (req, res) => {
+	// const id = req.params.id;
+	// entries = entries.filter((entry) => entry.id !== Number(id));
+
+	try {
+		const deletedPerson = await Person.findByIdAndRemove(req.params.id);
+
+		if (!deletedPerson) {
+			return res.status(404).end();
+		}
+
+		res.json(deletedPerson);
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({ error: 'Invalid ID' });
+	}
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', async (req, res) => {
 	const body = req.body;
 
 	if (!body.name || !body.number) {
 		return res.status(400).json({ error: `Name and Number both must be present.` });
 	}
 
-	let isUnique = true;
-	entries.forEach((entry) => {
-		if (entry.name.toLowerCase() === body.name.toLowerCase()) {
-			isUnique = false;
-		}
+	// let isUnique = true;
+	// entries.forEach((entry) => {
+	// 	if (entry.name.toLowerCase() === body.name.toLowerCase()) {
+	// 		isUnique = false;
+	// 	}
+	// });
+
+	// if (!isUnique) {
+	// 	return res.status(400).json({ error: `Name must be unique.` });
+	// }
+
+	const newPerson = new Person({
+		name: body.name,
+		number: body.number,
 	});
 
-	if (!isUnique) {
-		return res.status(400).json({ error: `Name must be unique.` });
-	}
+	const savedPerson = await newPerson.save();
 
-	const newEntry = [
-		{
-			name: body.name,
-			number: body.number,
-			id: Math.floor(Math.random() * 1000),
-		},
-	];
-	// console.log('newEntry', newEntry);
-	entries = entries.concat(newEntry);
+	// entries = entries.concat(newEntry);
 
-	res.json(newEntry);
+	res.json(savedPerson);
 });
 
 const PORT = process.env.PORT || 3001;
